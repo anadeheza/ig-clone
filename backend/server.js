@@ -81,4 +81,29 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.get('/posts/:id/comments', (req, res) => {
+  db.all(
+    `SELECT comments.*, users.username FROM comments
+    JOIN users ON comments.user_id = users.id
+    WHERE comments.post_id = ? 
+    ORDER BY comments.created_at ASC`,
+    [req.params.id],
+    (err, rows) => {
+      if(err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
+
+app.post('/posts/:id/comments', (req, res) => {
+  const { user_id, text } = req.body;
+  db.run(
+    `INSERT INTO comments (post_id, user_id, text) VALUES (?, ?, ?)`,
+    [req.params.id, user_id, text],
+    function(err) {
+      if(err) return res.status(500).json({ error: err.message });
+    }
+  );
+});
+
 app.listen(3001, () => console.log('Server running on http://localhost:3001'));
